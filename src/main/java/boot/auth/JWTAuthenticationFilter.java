@@ -39,11 +39,11 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
             //Read token from request header.
             String token = httpRequest.getHeader(Constants.HEADER_STRING );
 
-            // check token
-            AccountCredentials accountCredentials = JWT.checkToken4User(token, AccountCredentials.class);
-            Authentication authentication = new UsernamePasswordAuthenticationToken(accountCredentials, null, Collections.emptyList());
+            // remove token prefix and check token
+            AccountCredentials accountCredentials = JWT.checkToken4User(token.replace(Constants.TOKEN_PREFIX, ""), AccountCredentials.class);
+            Authentication authentication = new UsernamePasswordAuthenticationToken(accountCredentials.getUsername(), null, Collections.emptyList());
 
-            // no exceptions occurred add context authentication info
+            // no exceptions occurred add authentication info to context
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request,response);

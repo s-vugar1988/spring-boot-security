@@ -16,6 +16,8 @@ public class SpringBootController {
     @GetMapping("/boot")
     @ResponseBody
     public Test sayHello(@RequestParam(name= "boot", required=false, defaultValue="boot.domain.Test") String test) {
+
+
         return new Test(counter.incrementAndGet(), test);
     }
 

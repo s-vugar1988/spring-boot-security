@@ -2,10 +2,10 @@ package boot.auth;
 
 import boot.domain.AccountCredentials;
 import boot.domain.exceptions.UserDefinedException;
-import boot.jwt.TokenAuthenticationService;
 import boot.util.Constants;
 import boot.util.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,12 +19,11 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.Collections;
 
 
 /**
- * Filter for login opeartion
+ * Filter for login operation
  */
 public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -49,10 +48,13 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 
         //Read request input stream and read json & deserialize to AccountCredentials object.
         ServletInputStream inputStream = req.getInputStream();
-        AccountCredentials accountCredentials = new ObjectMapper().readValue(inputStream, AccountCredentials.class);
 
+
+
+        AccountCredentials accountCredentials = new ObjectMapper().readValue(inputStream, AccountCredentials.class);
         // Perform authentication operation
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(accountCredentials, Collections.emptyList());
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(accountCredentials.getUsername(), accountCredentials.getPassword(),  Collections.emptyList());
+
         return getAuthenticationManager().authenticate(usernamePasswordAuthenticationToken);
     }
 
@@ -69,7 +71,8 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain, Authentication auth) throws IOException, ServletException {
         try{
-            String token = JWT.buildToken( (AccountCredentials) auth.getPrincipal());
+
+            String token = JWT.buildToken(new AccountCredentials(auth.getName()));
             res.addHeader(Constants.HEADER_STRING, Constants.TOKEN_PREFIX + " " + token);
         } catch (UserDefinedException e) {
             e.printStackTrace();
